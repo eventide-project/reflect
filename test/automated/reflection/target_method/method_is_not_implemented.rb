@@ -2,17 +2,16 @@ require_relative '../../automated_init'
 
 context "Reflect" do
   context "Reflection" do
-    context "Actuate" do
+    context "Target Method" do
       context "Method Is Not Implemented" do
-        subject = Reflect::Controls::Subject.example
+        subject = Controls::Subject.example
+        reflection = Reflect.(subject, :SomeConstant)
 
-        reflection = Reflect.(subject, :SomeConstant, strict: true)
-
-        random_method_name = Reflect::Controls::Namespace::Random.get
+        method_name = :not_implemented_method
 
         test "Is an error" do
           assert_raises(Reflect::Error) do
-            reflection.(random_method_name)
+            reflection.target_method(method_name)
           end
         end
       end

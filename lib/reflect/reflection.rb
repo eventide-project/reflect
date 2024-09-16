@@ -27,20 +27,42 @@ module Reflect
       new(subject, target, strict)
     end
 
-    def call(method_name, arg=nil)
-      unless target.respond_to?(method_name)
+    def call(method_name, ...)
+      target_method = target_method(method_name)
+      target_method.(...)
+    end
+
+    def !(method_name, ...)
+      call(method_name, subject, ...)
+    end
+
+    def target_method?(method_name)
+      target.respond_to?(method_name)
+    end
+
+    ## Review purpose of optional subject and consider its removal - Alek, Nathan, Mon Sep 16 2024
+    def target_accessor?(name, subject=nil)
+      subject ||= constant
+      subject.respond_to?(name)
+    end
+
+    def target_method(method_name)
+      if !target_method?(method_name)
         target_name = Reflect.constant(target).name
         raise Reflect::Error, "#{target_name} does not define method #{method_name}"
       end
 
-      arg ||= subject
-
-      target.send(method_name, arg)
+      target.public_method(method_name)
     end
 
-    def target_accessor?(name, subject=nil)
-      subject ||= constant
-      subject.respond_to?(name)
+    def arity(method_name)
+      target_method = target_method(method_name)
+      target_method.arity
+    end
+
+    def parameters(method_name)
+      target_method = target_method(method_name)
+      target_method.parameters
     end
 
     def get(accessor_name, strict: nil, coerce_constant: nil)
@@ -69,7 +91,7 @@ module Reflect
         end
       end
 
-      target.send(accessor_name)
+      target.public_send(accessor_name)
     end
 
     module Default
